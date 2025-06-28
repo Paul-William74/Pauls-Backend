@@ -6,6 +6,7 @@ import com.example.notes.Model.User.User;
 import com.example.notes.Repository.BaseNoteRepo;
 import com.example.notes.Repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -49,5 +50,25 @@ public class NoteService {
      */
     public ResponseEntity<?> register() {
         return null; //TODO: needs to be implemented
-    };
+    }
+
+    public  ResponseEntity<?> deleteAll(Long userId){
+        //Find specific user
+        Optional <User> DbUser=userRepo.findById(userId);
+
+        //Check if they exist in the database
+        if (DbUser.isEmpty()){
+            return new ResponseEntity<>("User does not exist", HttpStatus.NOT_FOUND);
+        }
+
+        List <BaseNote> noteList=this.noteRepo.deleteAllByUserId(userId);
+
+        //clear all elements in the list
+        if (noteList.isEmpty()){
+            return new ResponseEntity<>("User has no notes", HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(STR."User has deleted: \{noteList.size()}notes",HttpStatus.OK);
+
+    }
 }

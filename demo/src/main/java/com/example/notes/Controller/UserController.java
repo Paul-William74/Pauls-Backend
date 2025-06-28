@@ -1,7 +1,8 @@
 package com.example.notes.Controller;
 
+import com.example.notes.DTOs.User.LoginRequest;
 import com.example.notes.DTOs.User.RegisteringUser;
-import com.example.notes.Model.User.User;
+import com.example.notes.Service.NoteService;
 import com.example.notes.Service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private NoteService noteService;
+
     /**
      * Registers a new user.
      *
@@ -39,8 +43,18 @@ public class UserController {
      *
      * @return a response entity with the login result
      */
-    @GetMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest user) {
         return this.userService.login(user);
     }
+
+    @GetMapping("/findAll")
+    public ResponseEntity<?>getAllUsers(){
+        return this.userService.getAllUsers();
+    }
+    @DeleteMapping("/notes/delete/{userId}")
+    public ResponseEntity<?> deleteAllUserNotes(@PathVariable Long userId) {
+        return noteService.deleteAll(userId);
+    }
+
 }
