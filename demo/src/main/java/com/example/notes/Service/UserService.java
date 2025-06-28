@@ -86,6 +86,7 @@ public class UserService {
         if (users.isEmpty()){
             return new ResponseEntity<>("No List",HttpStatus.BAD_REQUEST);
         }
+
         return new ResponseEntity<>(users,HttpStatus.OK);
 
         }
