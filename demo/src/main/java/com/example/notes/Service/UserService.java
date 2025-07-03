@@ -3,6 +3,7 @@ package com.example.notes.Service;
 import com.example.notes.DTOs.User.LoggedInUser;
 import com.example.notes.DTOs.User.LoginRequest;
 import com.example.notes.DTOs.User.RegisteringUser;
+import com.example.notes.DTOs.User.UserDTO;
 import com.example.notes.Mapper.UserMapper;
 import com.example.notes.Model.User.User;
 import com.example.notes.Repository.UserRepo;
@@ -82,13 +83,23 @@ public class UserService {
     }
     //Just wanted to check if showed registered users from database
     public ResponseEntity<?>getAllUsers(){
+
         List<User> users=userRepo.findAll();
-        if (users.isEmpty()){
-            return new ResponseEntity<>("No List",HttpStatus.BAD_REQUEST);
-        }
+        List<UserDTO>userDTOS=userMapper.UserListDTO(users);
 
-        return new ResponseEntity<>(users,HttpStatus.OK);
+        return new ResponseEntity<>(userDTOS,HttpStatus.OK);
 
         }
+
+    public ResponseEntity<?>deleteUser(Long user_Id){
+
+       if(user_Id==null){
+           return ResponseEntity.notFound().build();
+       }
+       userRepo.deleteById(user_Id);
+       return ResponseEntity.ok("Deleted User");
+    }
+
+
 
 }

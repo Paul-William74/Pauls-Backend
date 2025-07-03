@@ -2,12 +2,15 @@ package com.example.notes.Mapper;
 
 import com.example.notes.DTOs.User.LoggedInUser;
 import com.example.notes.DTOs.User.RegisteringUser;
+import com.example.notes.DTOs.User.UserDTO;
 import com.example.notes.Model.User.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public abstract class UserMapper  {
@@ -26,6 +29,7 @@ public abstract class UserMapper  {
 
     public abstract LoggedInUser toLoggedInUser(User user);
 
+    public  abstract List<UserDTO> UserListDTO(List<User> users);
     /**
      * Encodes the given password using the configured password encoder.
      *

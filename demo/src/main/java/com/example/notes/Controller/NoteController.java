@@ -1,10 +1,13 @@
 package com.example.notes.Controller;
 
+import com.example.notes.DTOs.Note.ChecklistDTO;
+import com.example.notes.DTOs.Note.RichTextDTO;
 import com.example.notes.Service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+
 
 /**
  * Controller for handling note-related HTTP requests.
@@ -19,8 +22,23 @@ public class NoteController {
     @Autowired
     public NoteService noteService;
 
+    @PostMapping("/create/RICH_TEXT/{userId}")
+    public ResponseEntity<?> createRichText(
+            @RequestBody RichTextDTO richTextDTO,
+            @PathVariable Long userId) {
+        return noteService.createRichTextNote(richTextDTO, userId);
+    }
 
-    public ResponseEntity<?> register() {
+    @PostMapping("/create/CHECK_LIST/{userId}")
+    public ResponseEntity<?> createChecklist(
+            @RequestBody ChecklistDTO checklistDTO,
+            @PathVariable Long userId) {
+        return noteService.createChecklistNote(checklistDTO, userId);
+    }
+
+    @DeleteMapping("/deleteAllNotes/{userId}")
+    public ResponseEntity<?> deleteAllUserNotes(@PathVariable Long userId) {
+        //return noteService.deleteAll(userId);
         return null;
     }
 

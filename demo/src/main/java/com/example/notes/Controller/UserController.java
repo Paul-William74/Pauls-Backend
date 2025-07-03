@@ -52,9 +52,11 @@ public class UserController {
     public ResponseEntity<?>getAllUsers(){
         return this.userService.getAllUsers();
     }
-    @DeleteMapping("/notes/delete/{userId}")
-    public ResponseEntity<?> deleteAllUserNotes(@PathVariable Long userId) {
-        return noteService.deleteAll(userId);
+
+    @DeleteMapping("/delete/{user_Id}")
+    public ResponseEntity<?>deleteUser(@PathVariable Long user_Id){
+        return this.userService.deleteUser(user_Id);
     }
+
 
 }
