@@ -1,6 +1,7 @@
 package com.example.notes.Repository;
 
 
+import com.example.notes.DTOs.Note.RichTextDTO;
 import com.example.notes.Model.Notes.RichTextNote;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

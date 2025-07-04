@@ -1,6 +1,7 @@
 package com.example.notes.Service;
 
 
+import com.example.notes.DTOs.Note.BaseNoteDTO;
 import com.example.notes.DTOs.Note.ChecklistDTO;
 import com.example.notes.DTOs.Note.RichTextDTO;
 import com.example.notes.Mapper.NoteMapper;
@@ -9,10 +10,7 @@ import com.example.notes.Model.Notes.CheckListNote;
 import com.example.notes.Model.Notes.NOTE_TYPE;
 import com.example.notes.Model.Notes.RichTextNote;
 import com.example.notes.Model.User.User;
-import com.example.notes.Repository.BaseNoteRepo;
-import com.example.notes.Repository.ChecklistNoteRepo;
-import com.example.notes.Repository.RichTextRepo;
-import com.example.notes.Repository.UserRepo;
+import com.example.notes.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,23 +45,64 @@ public class NoteService {
      */
     public ResponseEntity<?> getUserNotes(Long userId) {
         //validate if the user exists
-        Optional<User> userOptional = this.userRepo.findById(userId);
+        Optional<User> userOptional = userRepo.findById(userId);
         if (userOptional.isEmpty()) //if user does not exist
             return ResponseEntity.badRequest().body("User not found");
 
-        List<BaseNote> noteList = this.noteRepo.findAllByUserId(userId);
+        List<BaseNote> noteList = userOptional.get().getNoteList();
+        List<BaseNoteDTO> dtoList = noteMapper.toBaseNoteDTOList(noteList);
+
+        for (int i=0;i<noteList.size();i++){
+            dtoList.get(i).setUpdatedAt(noteList.get(i).getUpdatedAt());
+        }
 
         //the return will change, according to the front end requirements(needs DTO)
-        return ResponseEntity.ok(noteList);
+        return ResponseEntity.ok(dtoList);
+
     }
 
-    public ResponseEntity<?> createRichTextNote(RichTextDTO richTextDTO, Long user_Id) {
+    public ResponseEntity<?>updateRichNote(RichTextDTO dto, Long noteId){
+
+        Optional <RichTextNote> DbRichTextNote=richTextRepo.findById(noteId);
+
+        if (DbRichTextNote.isEmpty()){
+            return ResponseEntity.badRequest().body("Invalid Note Id");
+        }
+
+        RichTextNote richTextNote= DbRichTextNote.get();
+        richTextNote.setTitle(dto.getTitle());
+        richTextNote.setDescription(dto.getDescription());
+        richTextNote.setRichTextContent(dto.getRichTextContent());
+        RichTextNote save=noteRepo.save(richTextNote);
+
+        RichTextDTO update =noteMapper.toRichTextDTO(save);
+        update.setUpdatedAt(save.getUpdatedAt());
+
+        return ResponseEntity.ok(update);
+    }
+    public ResponseEntity<?>updateChecklistNote(Long noteId, ChecklistDTO dto){
+
+
+        Optional<CheckListNote> note=checklistNoteRepo.findById(noteId);
+
+        if (note.isEmpty()){
+            return ResponseEntity.badRequest().body("Invalid Note Id");
+        }
+
+
+
+
+
+        return null;
+    }
+
+    public ResponseEntity<?> createRichTextNote(RichTextDTO richTextDTO, Long userId) {
 
         if (richTextDTO == null) {
             return ResponseEntity.badRequest().body("Invalid Note Type Object");
         }
 
-        Optional<User> DbUser = userRepo.findById(user_Id);
+        Optional<User> DbUser = userRepo.findById(userId);
 
         if (DbUser.isEmpty()) {
             return ResponseEntity.badRequest().body("User does not exist");
@@ -76,7 +115,7 @@ public class NoteService {
         richTextNote.setNoteType(NOTE_TYPE.RICH_TEXT);
 
         RichTextNote save = richTextRepo.save(richTextNote);
-        RichTextDTO dto = noteMapper.toRichTextDto(save);
+        RichTextDTO dto = noteMapper.toRichTextDTO(save);
 
 
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
@@ -105,15 +144,23 @@ public class NoteService {
         return new ResponseEntity<>(save, HttpStatus.CREATED);
     }
 
-    //Still needs implementation
-    public ResponseEntity<?> deleteAll(Long userId) {
-        //Find specific user
-        Optional<User> DbUser = userRepo.findById(userId);
+    public ResponseEntity<?> deleteNote(Long userId,Long noteId) {
 
-        //Check if they exist in the database
-        if (DbUser.isEmpty()) {
-            return new ResponseEntity<>("User does not exist", HttpStatus.NOT_FOUND);
+        Optional<User>DbUser=userRepo.findById(userId);
+        Optional<BaseNote> DbNote=noteRepo.findById(noteId);
+
+        if(DbUser.isEmpty()||DbNote.isEmpty()){
+            return ResponseEntity.badRequest().body("Invalid Note Id or User Id");
         }
-        return null;
+        User user=DbUser.get();
+        List <BaseNote> noteList=user.getNoteList();
+        BaseNote note=DbNote.get();
+
+        noteList.remove(note);
+        user.setNoteList(noteList);
+        userRepo.save(user);
+
+
+        return new ResponseEntity<>("Note Successfully Deleted",HttpStatus.OK);
     }
 }

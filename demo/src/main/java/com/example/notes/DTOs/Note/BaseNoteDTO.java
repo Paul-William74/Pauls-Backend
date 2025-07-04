@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,4 +22,6 @@ public abstract class BaseNoteDTO {
 
     @Nullable
     private String description; // Description of the note
+
+    private LocalDateTime updatedAt;
 }

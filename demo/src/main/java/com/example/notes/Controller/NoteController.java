@@ -22,11 +22,22 @@ public class NoteController {
     @Autowired
     public NoteService noteService;
 
+    @GetMapping("/findNotes/{userId}")
+    public ResponseEntity<?> getNotes(@PathVariable Long userId){
+        return noteService.getUserNotes(userId);
+    }
     @PostMapping("/create/RICH_TEXT/{userId}")
     public ResponseEntity<?> createRichText(
             @RequestBody RichTextDTO richTextDTO,
             @PathVariable Long userId) {
         return noteService.createRichTextNote(richTextDTO, userId);
+    }
+
+    @PutMapping("/update/RICH_TEXT/{noteId}")
+    public ResponseEntity<?> editRichText(
+        @RequestBody RichTextDTO richTextDTO,
+        @PathVariable Long noteId){
+            return noteService.updateRichNote(richTextDTO,noteId);
     }
 
     @PostMapping("/create/CHECK_LIST/{userId}")
@@ -36,10 +47,9 @@ public class NoteController {
         return noteService.createChecklistNote(checklistDTO, userId);
     }
 
-    @DeleteMapping("/deleteAllNotes/{userId}")
-    public ResponseEntity<?> deleteAllUserNotes(@PathVariable Long userId) {
-        //return noteService.deleteAll(userId);
-        return null;
+    @DeleteMapping("/delete/{userId}/{noteId}")
+    public ResponseEntity<?> deleteNote(@PathVariable Long userId, @PathVariable Long noteId) {
+        return noteService.deleteNote(userId,noteId);
     }
 
 }
