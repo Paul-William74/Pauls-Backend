@@ -3,12 +3,10 @@ package com.example.notes.Service;
 
 import com.example.notes.DTOs.Note.BaseNoteDTO;
 import com.example.notes.DTOs.Note.ChecklistDTO;
+import com.example.notes.DTOs.Note.ChecklistItemDTO;
 import com.example.notes.DTOs.Note.RichTextDTO;
 import com.example.notes.Mapper.NoteMapper;
-import com.example.notes.Model.Notes.BaseNote;
-import com.example.notes.Model.Notes.CheckListNote;
-import com.example.notes.Model.Notes.NOTE_TYPE;
-import com.example.notes.Model.Notes.RichTextNote;
+import com.example.notes.Model.Notes.*;
 import com.example.notes.Model.User.User;
 import com.example.notes.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +33,12 @@ public class NoteService {
     private ChecklistNoteRepo checklistNoteRepo;
 
     @Autowired
+    private ChecklistItemRepo checklistItemRepo;
+
+    @Autowired
     private NoteMapper noteMapper;
+
+
 
     /**
      * Retrieves all notes for a specific user.
@@ -54,12 +57,25 @@ public class NoteService {
 
         for (int i=0;i<noteList.size();i++){
             dtoList.get(i).setUpdatedAt(noteList.get(i).getUpdatedAt());
+
+            if(noteList.get(i).getNoteType()==NOTE_TYPE.CHECK_LIST){
+                CheckListNote checkListNote=(CheckListNote) noteList.get(i);
+                List<ChecklistItem> items=checkListNote.getChecklistItemList();
+
+                List<ChecklistItemDTO> itemDTOS=noteMapper.toChecklistItemDTOs(items);
+
+                ChecklistDTO checklistDTO=((ChecklistDTO) dtoList.get(i));
+                checklistDTO.setChecklistItemList(itemDTOS);
+            }
+
         }
 
         //the return will change, according to the front end requirements(needs DTO)
         return ResponseEntity.ok(dtoList);
 
     }
+
+
 
     public ResponseEntity<?>updateRichNote(RichTextDTO dto, Long noteId){
 
@@ -80,21 +96,59 @@ public class NoteService {
 
         return ResponseEntity.ok(update);
     }
-    public ResponseEntity<?>updateChecklistNote(Long noteId, ChecklistDTO dto){
 
 
-        Optional<CheckListNote> note=checklistNoteRepo.findById(noteId);
 
-        if (note.isEmpty()){
+    public ResponseEntity<?>updateChecklistNote(ChecklistDTO dto, Long noteId){
+
+        if (dto==null){
+            return ResponseEntity.badRequest().body("Invalid checklist object");
+        }
+
+        Optional<CheckListNote> DbCheckListNote=checklistNoteRepo.findById(noteId);
+
+        if (DbCheckListNote.isEmpty()){
             return ResponseEntity.badRequest().body("Invalid Note Id");
         }
 
+        CheckListNote checkListNote=DbCheckListNote.get();
+        checkListNote.setTitle(dto.getTitle());
+        checkListNote.setDescription(dto.getDescription());
+
+        CheckListNote save=noteRepo.save(checkListNote);
+        ChecklistDTO update=noteMapper.toCheckListDTO(save);
 
 
-
-
-        return null;
+        return ResponseEntity.ok(update);
     }
+
+
+
+    public ResponseEntity<?> updateChecklistItem(ChecklistItemDTO dto, Long itemId){
+
+        if (dto==null){
+            return ResponseEntity.badRequest().body("Invalid checklist object");
+        }
+
+        Optional<ChecklistItem> DbChecklistItem=checklistItemRepo.findById(itemId);
+
+        if (DbChecklistItem.isEmpty()){
+            return ResponseEntity.badRequest().body("Invalid Note Id");
+        }
+
+        ChecklistItem checklistItem= DbChecklistItem.get();
+
+        checklistItem.setPoint(dto.getPoint());
+        checklistItem.setChecked(dto.isChecked());
+
+        ChecklistItem save=checklistItemRepo.save(checklistItem);
+        ChecklistItemDTO update=noteMapper.toChecklistItemDto(save);
+
+
+        return ResponseEntity.ok(update);
+    }
+
+
 
     public ResponseEntity<?> createRichTextNote(RichTextDTO richTextDTO, Long userId) {
 
@@ -121,6 +175,9 @@ public class NoteService {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
+
+
+
     public ResponseEntity<?> createChecklistNote(ChecklistDTO checklistDTO, Long user_Id) {
 
         if (checklistDTO == null) {
@@ -140,9 +197,40 @@ public class NoteService {
         checkListNote.setNoteType(NOTE_TYPE.CHECK_LIST);
 
         CheckListNote save = checklistNoteRepo.save(checkListNote);
+        ChecklistDTO dto=noteMapper.toCheckListDTO(save);
 
-        return new ResponseEntity<>(save, HttpStatus.CREATED);
+
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
+
+
+
+
+    public  ResponseEntity<?> createChecklistItem(ChecklistItemDTO checklistItemDTO, Long checklistNoteId){
+
+        if (checklistItemDTO==null){
+            return ResponseEntity.badRequest().body("Invalid Checklist Item");
+        }
+
+        Optional<CheckListNote>DbCheckListNote=checklistNoteRepo.findById(checklistNoteId);
+
+        if (DbCheckListNote.isEmpty()){
+            return  ResponseEntity.badRequest().body("Invalid Checklist Note Id");
+        }
+
+        CheckListNote checkListNote=DbCheckListNote.get();
+
+        ChecklistItem item=noteMapper.toChecklistItem(checklistItemDTO);
+        item.setCheckListNote(checkListNote);
+
+        ChecklistItem save=checklistItemRepo.save(item);
+        ChecklistItemDTO dto=noteMapper.toChecklistItemDto(save);
+
+
+        return ResponseEntity.ok(dto);
+    }
+
+
 
     public ResponseEntity<?> deleteNote(Long userId,Long noteId) {
 
@@ -157,7 +245,6 @@ public class NoteService {
         BaseNote note=DbNote.get();
 
         noteList.remove(note);
-        user.setNoteList(noteList);
         userRepo.save(user);
 
 

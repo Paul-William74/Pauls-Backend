@@ -6,12 +6,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.LastModifiedDate;
+
 
 import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "base_note")
 @Data
 @AllArgsConstructor
@@ -35,7 +38,7 @@ public abstract class BaseNote {
     @Enumerated(EnumType.STRING)
     protected NOTE_TYPE noteType;
 
-
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
+    @JoinColumn(name="user_id")
     protected User user; //many notes(of all types) can belong to one user
 }

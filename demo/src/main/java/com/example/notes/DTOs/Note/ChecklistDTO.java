@@ -18,5 +18,5 @@ import java.util.List;
 public final class ChecklistDTO extends BaseNoteDTO{
 
     @Nullable
-    private List<ChecklistItem> checklistItemList = new ArrayList<>();
+    private List<ChecklistItemDTO> checklistItemList = new ArrayList<>();
 }
